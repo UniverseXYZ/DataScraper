@@ -1,10 +1,14 @@
 const { ethers } = require("ethers");
+const fs = require('fs');
 require('dotenv').config()
 
 const NODE = process.env.NODE;
 const PROVIDER = new ethers.providers.JsonRpcProvider(NODE);
 
 async function get721Transfers(blockNumber){
+    let rawabi = fs.readFileSync('./abi/ERC721.json');
+    let abi = JSON.parse(rawabi).abi;    
+    var iface = new ethers.utils.Interface(abi)
     event_signature = ethers.utils.id("Transfer(address,address,uint256)")
     logs = await PROVIDER.getLogs({
         "fromBlock": blockNumber,
@@ -14,12 +18,15 @@ async function get721Transfers(blockNumber){
     for(let i = 0; i < logs.length; i++){
         txLog = logs[i]
         topics = txLog['topics']
+        data = txLog.data
         if (topics.length == 4 && parseInt(topics[1], 16) != 0){
+            var result = iface.decodeEventLog("Transfer", data, topics)
+            console.log(result)
             events.push({
                 contract: txLog.address,
-                tokenId: parseInt(topics[3], 16),
-                from: topics[1],
-                to: topics[2]
+                tokenId: parseInt(result.tokenId._hex),
+                from: result.from,
+                to: result.to
             })
         }
     }
@@ -28,43 +35,8 @@ async function get721Transfers(blockNumber){
 
 async function get1155SingleTransfers(blockNumber){
     // TransferSingle(address operator, address from, address to, uint256 id, uint256 value)
-    var abi = [{
-        "anonymous": false,
-        "inputs": [
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "operator",
-            "type": "address"
-          },
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "from",
-            "type": "address"
-          },
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "to",
-            "type": "address"
-          },
-          {
-            "indexed": false,
-            "internalType": "uint256",
-            "name": "id",
-            "type": "uint256"
-          },
-          {
-            "indexed": false,
-            "internalType": "uint256",
-            "name": "value",
-            "type": "uint256"
-          }
-        ],
-        "name": "TransferSingle",
-        "type": "event"
-      }]      
+    let rawabi = fs.readFileSync('./abi/ERC1155.json');
+    let abi = JSON.parse(rawabi).abi;    
     var iface = new ethers.utils.Interface(abi)
     event_signature = ethers.utils.id("TransferSingle(address,address,address,uint256,uint256)")
     logs = await PROVIDER.getLogs({
@@ -84,7 +56,7 @@ async function get1155SingleTransfers(blockNumber){
                 from: result.from,
                 to: result.to,
                 id: parseInt(result.id._hex, 16),
-                value: parseInt(result.value._hex, 16)
+                amount: parseInt(result.amount._hex, 16)
             })
         }
     }
@@ -93,9 +65,9 @@ async function get1155SingleTransfers(blockNumber){
 
 async function main(blockNumber){
     console.log(blockNumber)
-    erc721Transfers = await get721Transfers(blockNumber)
+    erc721Transfers = await get721Transfers(blockNumber-10)
     if(erc721Transfers.length) console.log("721s: ", erc721Transfers);
-    erc1155Transfers = await get1155SingleTransfers(blockNumber)
+    erc1155Transfers = await get1155SingleTransfers(blockNumber-10)
     if(erc1155Transfers.length) console.log("1155 (single): ", erc1155Transfers);
 }
 
