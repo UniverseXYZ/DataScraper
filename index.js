@@ -21,7 +21,6 @@ async function get721Transfers(blockNumber){
         data = txLog.data
         if (topics.length == 4 && parseInt(topics[1], 16) != 0){
             var result = iface.decodeEventLog("Transfer", data, topics)
-            console.log(result)
             events.push({
                 contract: txLog.address,
                 tokenId: parseInt(result.tokenId._hex),
@@ -63,12 +62,49 @@ async function get1155SingleTransfers(blockNumber){
     return events
 }
 
+async function get1155BatchTransfers(blockNumber){
+    // TransferBatch(address operator, address from, address to, uint256 id, uint256[] values)
+    let rawabi = fs.readFileSync('./abi/ERC1155.json');
+    let abi = JSON.parse(rawabi).abi;    
+    var iface = new ethers.utils.Interface(abi)
+    event_signature = ethers.utils.id("TransferBatch(address,address,address,uint256[],uint256[])")
+    logs = await PROVIDER.getLogs({
+        "fromBlock": blockNumber,
+        "topics": [event_signature]
+    })
+    events = []
+    for(let i = 0; i < logs.length; i++){
+        txLog = logs[i]
+        topics = txLog['topics']
+        data = txLog.data
+        var result = iface.decodeEventLog("TransferBatch", data, topics)
+        if (parseInt(result.from, 16) != 0){
+            events.push({
+                contract: txLog.address,
+                operator: result.operator,
+                from: result.from,
+                to: result.to,
+                ids: result.ids.map(x => parseInt(x, 16)),
+                amounts: result.amounts.map(x => parseInt(x, 16))
+            })
+        }
+    }
+    return events
+}
+
+
 async function main(blockNumber){
     console.log(blockNumber)
+
     erc721Transfers = await get721Transfers(blockNumber)
     if(erc721Transfers.length) console.log("721s: ", erc721Transfers);
+    
     erc1155Transfers = await get1155SingleTransfers(blockNumber)
     if(erc1155Transfers.length) console.log("1155 (single): ", erc1155Transfers);
+    
+    erc1155TransfersBatch = await get1155BatchTransfers(blockNumber)
+    if(erc1155TransfersBatch.length) console.log("1155 (batch): ", erc1155TransfersBatch);
+
 }
 
 PROVIDER.on("block", (blockNumber) => {
