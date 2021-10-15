@@ -65,9 +65,9 @@ async function get1155SingleTransfers(blockNumber){
 
 async function main(blockNumber){
     console.log(blockNumber)
-    erc721Transfers = await get721Transfers(blockNumber-10)
+    erc721Transfers = await get721Transfers(blockNumber)
     if(erc721Transfers.length) console.log("721s: ", erc721Transfers);
-    erc1155Transfers = await get1155SingleTransfers(blockNumber-10)
+    erc1155Transfers = await get1155SingleTransfers(blockNumber)
     if(erc1155Transfers.length) console.log("1155 (single): ", erc1155Transfers);
 }
 
