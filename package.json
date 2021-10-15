@@ -9,7 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws/web3-http-provider": "^1.0.1",
+    "aws-sdk": "^2.1009.0",
     "dotenv": "^10.0.0",
-    "ethers": "^5.4.7"
+    "ethers": "^5.4.7",
+    "web3": "^1.6.0",
+    "xhr2": "^0.2.1"
   }
 }

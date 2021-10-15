@@ -1,9 +1,16 @@
 const { ethers } = require("ethers");
+const AWSHttpProvider = require('@aws/web3-http-provider');
 const fs = require('fs');
 require('dotenv').config()
 
-const NODE = process.env.NODE;
-const PROVIDER = new ethers.providers.JsonRpcProvider(NODE);
+const node = process.env.AMB_HTTP_ENDPOINT;
+const credentials = {
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID, 
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+}
+
+const baseProvider = new AWSHttpProvider(node, credentials)
+const PROVIDER = new ethers.providers.Web3Provider(baseProvider);
 
 async function get721Transfers(blockNumber){
     let rawabi = fs.readFileSync('./abi/ERC721.json');
