@@ -19,6 +19,7 @@ const baseProvider = new AWSHttpProvider(node, credentials)
 const PROVIDER = new ethers.providers.Web3Provider(baseProvider)
 
 async function get721Transfers(blockNumber){
+    // Transfer(address from, address to, uint256 id)
     event_signature = ethers.utils.id("Transfer(address,address,uint256)")
     logs = await PROVIDER.getLogs({
         "fromBlock": blockNumber,
