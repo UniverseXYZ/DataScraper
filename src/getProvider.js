@@ -13,6 +13,5 @@ function getProvider(){
     return provider
 }
 
-module.exports.getProvider = getProvider
 module.exports.provider = getProvider()
 
