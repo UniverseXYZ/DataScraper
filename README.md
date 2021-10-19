@@ -15,3 +15,18 @@ Notes:
 * Monitoring for new NFT contract deployments is tricky... it may be best to treat all transfers as contract deployments if the contract has not yet been indexed into our db
 * The high level driver should monitor for new blocks, but should only process data after 6-12? block confirmations
 * On each block a list of events for each feature should processed, and forward to the relevant microservices to make further use of these events e.g. scraping the nfts in a new contract, canceling a listing if it is transferred out of the users wallet, etc 
+
+Flows:
+* New NFT Contract
+    * Catch transfer events matching addresses not in our db
+    * Get block contract was created at (via etherscan api)
+    * Store name and ticker of collection in database
+    * Index all transfer events from creation block to now
+* New NFT Transfers
+    * Catch transfer events matching assets listed for sale in the db
+    * Check if transfer is from a matched order
+    * Cancel listing and mark as completed or invalidated
+* New NFT Mints
+    * Catch transfer events coming from address(0)
+    * Retreive assets tokenURI and store in db (name, description, properties, etc)
+    * Process asset media into 3 resolutions (full, high, and low), and upload asset to CDN
