@@ -1,6 +1,8 @@
 const { ethers } = require("ethers")
 const { provider } = require('./getProvider.js')
 const fetch = require('node-fetch');
+const fs = require('fs')
+const ERC721_ABI = JSON.parse(fs.readFileSync('./abi/ERC721.json')).abi
 require('dotenv').config()
 
 async function getContractCreationBlock(address, blockNumber){
@@ -16,18 +18,23 @@ async function getContractCreationBlock(address, blockNumber){
 
 async function indexERC721(address, blockNumber){
     event_signature = ethers.utils.id("Transfer(address,address,uint256)")
-    fromBlock = await getContractCreationBlock(address, blockNumber)
+    let fromBlock = await getContractCreationBlock(address, blockNumber)
+    let contract = new ethers.Contract(address, ERC721_ABI, provider);
+    let totalSupply = parseInt((await contract.totalSupply())._hex)
+    console.log("Indexing address: ", address)
+    console.log("Total supply: ", totalSupply)
+
     transfers = []
     while(fromBlock < blockNumber){
         logs = await provider.getLogs({
             "fromBlock": fromBlock,
-            "toBlock": fromBlock + 1000,
+            "toBlock": fromBlock + 999,
             "address": address,
-            "topics": [event_signature]
+            "topics": [event_signature, "0x0000000000000000000000000000000000000000000000000000000000000000"]
         })
-        transfers.push(logs)
-        fromBlock = fromBlock + 1000 
-        console.log(blockNumber-fromBlock)
+        transfers = transfers.concat(logs)
+        fromBlock = fromBlock + 1000
+        if(totalSupply == transfers.length) break;
     }
     return transfers
 }

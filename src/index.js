@@ -23,6 +23,9 @@ async function main(blockNumber){
    //if(erc1155TransfersBatch.length) console.log("1155 (batch): ", erc1155TransfersBatch[0])
 }
 
-provider.on("block", (blockNumber) => {
+provider.getBlockNumber().then(blockNumber => {
     main(blockNumber)
 })
+//provider.on("block", (blockNumber) => {
+//    main(blockNumber)
+//})
