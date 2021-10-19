@@ -1,5 +1,5 @@
 // Decodes 721 & 1155 transfer events 
-async function decodeTransferEvents(logs, iface, methodName, topicLength){
+function decodeEvents(logs, iface, methodName, topicLength){
     events = []
     for(let i = 0; i < logs.length; i++){
         topics = logs[i]['topics']
@@ -41,4 +41,4 @@ async function decodeTransferEvents(logs, iface, methodName, topicLength){
     return events;
 }
 
-module.exports.decodeTransferEvents = decodeTransferEvents;
+module.exports.decodeEvents = decodeEvents;
