@@ -15,6 +15,7 @@ Notes:
 * Monitoring for new NFT contract deployments is tricky... it may be best to treat all transfers as contract deployments if the contract has not yet been indexed into our db
 * The high level driver should monitor for new blocks, but should only process data after 6-12? block confirmations
 * On each block a list of events for each feature should processed, and forward to the relevant microservices to make further use of these events e.g. scraping the nfts in a new contract, canceling a listing if it is transferred out of the users wallet, etc 
+* New contract indexer must query all mints first, in order to deterimine which tokenIds exist - some collections are 1 to 10,000, but we can not assume that is always the case!
 
 Flows:
 * New NFT Contract
