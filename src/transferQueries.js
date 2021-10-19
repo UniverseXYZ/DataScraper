@@ -13,6 +13,7 @@ async function get721Transfers(blockNumber){
     event_signature = ethers.utils.id("Transfer(address,address,uint256)")
     logs = await provider.getLogs({
         "fromBlock": blockNumber,
+        "toBlock": blockNumber,
         "topics": [event_signature]
     })
     return decodeTransferEvents(logs, IFACE_721, "Transfer", 4)
