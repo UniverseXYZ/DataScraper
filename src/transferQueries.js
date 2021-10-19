@@ -25,6 +25,7 @@ async function get1155SingleTransfers(blockNumber){
     event_signature = ethers.utils.id("TransferSingle(address,address,address,uint256,uint256)")
     logs = await provider.getLogs({
         "fromBlock": blockNumber,
+        "toBlock": blockNumber,
         "topics": [event_signature]
     })
     return decodeTransferEvents(logs, IFACE_1155, "TransferSingle", 4)
@@ -36,6 +37,7 @@ async function get1155BatchTransfers(blockNumber){
     event_signature = ethers.utils.id("TransferBatch(address,address,address,uint256[],uint256[])")
     logs = await provider.getLogs({
         "fromBlock": blockNumber,
+        "toBlock": blockNumber,
         "topics": [event_signature]
     })
     return decodeTransferEvents(logs, IFACE_1155, "TransferBatch", 4)
