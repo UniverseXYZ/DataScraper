@@ -1,26 +1,12 @@
-const { provider } = require('./getProvider.js')
-const {
-    get721Transfers,
-    get1155BatchTransfers,
-    get1155SingleTransfers
-} = require('./transferQueries.js')
-const { indexERC721 } = require('./contractIndexer')
-const polymorphContractAddress = "0x1cBB182322Aee8ce9F4F1f98d7460173ee30Af1F"
+const { provider } = require('./getProvider')
+const { get721Transfers, get1155Transfers } = require('./eventScraper')
 
 async function main(blockNumber){
-    //console.log(blockNumber)
-
-    transfers = await indexERC721(polymorphContractAddress, blockNumber)
-    console.log(transfers.length)
-
-    erc721Transfers = await get721Transfers(blockNumber)
-    //if(erc721Transfers.length) console.log("721: ", erc721Transfers[0])
-    
-    erc1155Transfers = await get1155SingleTransfers(blockNumber)
-    //if(erc1155Transfers.length) console.log("1155 (single): ", erc1155Transfers[0])
-    
-   erc1155TransfersBatch = await get1155BatchTransfers(blockNumber)
-   //if(erc1155TransfersBatch.length) console.log("1155 (batch): ", erc1155TransfersBatch[0])
+    console.log(blockNumber)
+    logs721 = await get721Transfers(blockNumber)
+    console.log(logs721)
+    logs1155 = await get1155Transfers(blockNumber)
+    console.log(logs1155)
 }
 
 provider.getBlockNumber().then(blockNumber => {
