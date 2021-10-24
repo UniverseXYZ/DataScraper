@@ -61,7 +61,7 @@ provider.getBlockNumber().then(blockNumber => {
 */
 async function main(){
     client = await pool.connect()
-    await initDB(true)
+    await initDB(false)
     provider.on("block", (blockNumber) => {
         scrape(blockNumber)
     })    

@@ -14,7 +14,59 @@ app.get("/transfers", async (req, res) => {
     }
 });
   
+app.get("/transfers/from/:addr", async (req, res) => {
+    try {
+      const { addr } = req.params;
+      const transfers = await pool.query("SELECT * FROM transfers WHERE fromAddr = $1 ORDER BY id DESC limit 200", [
+        addr
+      ]);
   
+      res.json(transfers.rows);
+    } catch (err) {
+      console.error(err.message);
+    }
+});
+
+app.get("/transfers/to/:addr", async (req, res) => {
+    try {
+      const { addr } = req.params;
+      const transfers = await pool.query("SELECT * FROM transfers WHERE toAddr = $1 ORDER BY id DESC limit 200", [
+        addr
+      ]);
+  
+      res.json(transfers.rows);
+    } catch (err) {
+      console.error(err.message);
+    }
+});
+
+
+app.get("/transfers/contract/:addr", async (req, res) => {
+    try {
+      const { addr } = req.params;
+      const transfers = await pool.query("SELECT * FROM transfers WHERE tokenAddr = $1 ORDER BY id DESC limit 200", [
+        addr
+      ]);
+  
+      res.json(transfers.rows);
+    } catch (err) {
+      console.error(err.message);
+    }
+});
+
+app.get("/transfers/token/:addr/:id", async (req, res) => {
+    try {
+      const { addr, id } = req.params;
+      const transfers = await pool.query("SELECT * FROM transfers WHERE tokenAddr = $1 AND tokenId = $2 ORDER BY id DESC limit 200", [
+        addr, id
+      ]);
+      res.json(transfers.rows);
+    } catch (err) {
+      console.error(err.message);
+    }
+});
+
+
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
 })
