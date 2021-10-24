@@ -45,6 +45,12 @@ function splitBatch1155Logs(logs){
     return ls
 }
 
+async function getAllTransfers(blockNumber){
+    logs721 = await get721Transfers(blockNumber)
+    logs1155 = await get1155Transfers(blockNumber)
+    return logs721.concat(logs1155)
+}
+
 async function get721Transfers(blockNumber){
     // Transfer(address from, address to, uint256 id)
     let logs = (await provider.getLogs({
@@ -86,5 +92,4 @@ async function get1155BatchTransfers(blockNumber){
     return logs
 }
 
-module.exports.get721Transfers = get721Transfers
-module.exports.get1155Transfers = get1155Transfers
+module.exports.getAllTransfers = getAllTransfers

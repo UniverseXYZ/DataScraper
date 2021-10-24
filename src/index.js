@@ -1,17 +1,21 @@
 const { provider } = require('./getProvider')
-const { get721Transfers, get1155Transfers } = require('./eventScraper')
+const { getAllTransfers } = require('./eventScraper')
 
 async function main(blockNumber){
     console.log(blockNumber)
-    logs721 = await get721Transfers(blockNumber)
-    console.log(logs721)
-    logs1155 = await get1155Transfers(blockNumber)
-    console.log(logs1155)
+    transfers = await getAllTransfers(blockNumber)
+    if(transfers.length > 0){
+        console.log("Found %d transfers", transfers.length)
+        console.log("Preview: ", transfers[0])
+    } else {
+        console.log("No transfers found on block: %d", blockNumber)
+    }
 }
-
+/*
 provider.getBlockNumber().then(blockNumber => {
     main(blockNumber)
 })
-//provider.on("block", (blockNumber) => {
-//    main(blockNumber)
-//})
+*/
+provider.on("block", (blockNumber) => {
+    main(blockNumber)
+})
