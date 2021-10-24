@@ -1,0 +1,35 @@
+# docker-compose.yml
+version: "3"
+services:
+  event-monitor:
+    build: ./EventMonitor
+    depends_on:
+      - pg
+    links:
+      - pg
+    environment:
+      DB_URI: postgres://user:pass@pg:5432/test
+  api:
+    build: ./API
+    depends_on:
+      - pg
+    links:
+      - pg
+    environment:
+      DB_URI: postgres://user:pass@pg:5432/test
+    ports:
+      - "3000:3000"
+    expose:
+      - 3000
+  pg:
+    container_name: pg
+    image: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: test
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    expose:
+      - 5432
