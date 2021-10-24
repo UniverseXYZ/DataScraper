@@ -2,6 +2,8 @@
 
 ### The DataScraper is a component within the Universe Marketplace Backend that acts as middleware between the ethereum blockchain and the Universe Backend. 
 
+Run the beta with: `docker-compose build && docker-compose up`
+
 Features in the DataScraper include firing events on:
 * NFT Transfers
      * ERC721 Transfers
