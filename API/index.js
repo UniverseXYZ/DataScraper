@@ -1,9 +1,11 @@
 const express = require('express')
+const cors = require('cors')
 const { Pool } = require('pg')
 const connectionString = process.env.DB_URI
 const pool = new Pool({ connectionString })
 const app = express()
 const port = 3000
+app.use(cors())
 
 app.get("/transfers", async (req, res) => {
     try {
