@@ -16,16 +16,16 @@ function devodeEventLogs(method, logs, iface){
         log.to = decodedEvent.to
         switch(method) {
             case "TransferSingle":
-                log.tokenId = parseInt(decodedEvent.id._hex, 16)
-                log.amount = parseInt(decodedEvent.amount._hex, 16)
+                log.tokenId = decodedEvent.id.toString()
+                log.amount = decodedEvent.amount.toString()
                 break;
             case "TransferBatch":
-                log.tokenId = decodedEvent.ids.map(id => parseInt(id._hex, 16));
-                log.amount =  decodedEvent.amounts.map(amount => parseInt(amount._hex, 16))
+                log.tokenId = decodedEvent.ids.map(id => id.toString());
+                log.amount =  decodedEvent.amounts.map(amount => amount.toString())
                 break;
             case "Transfer":
-                log.tokenId = parseInt(decodedEvent.tokenId._hex, 16)
-                log.amount = 1
+                log.tokenId = decodedEvent.tokenId.toString()
+                log.amount = "1"
                 break;
         }
         return log

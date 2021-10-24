@@ -13,10 +13,10 @@ async function initDB(drop=false){
     CREATE TABLE IF NOT EXISTS transfers (
         id SERIAL,
         data jsonb NOT NULL,
-        fromAddr   TEXT GENERATED ALWAYS AS (data ->> 'from') stored,
+        fromAddr    TEXT GENERATED ALWAYS AS (data ->> 'from') stored,
         toAddr      TEXT GENERATED ALWAYS AS (data ->> 'to')   stored,
         tokenAddr   TEXT GENERATED ALWAYS AS (data ->> 'address') stored,
-        tokenId     TEXT GENERATED ALWAYS AS (data ->> 'tokenId') stored,
+        tokenId     varchar(200) GENERATED ALWAYS AS (data ->> 'tokenId') stored,
         amount      TEXT GENERATED ALWAYS AS (data ->> 'amount') stored,
         logIndex    TEXT GENERATED ALWAYS AS (data ->> 'logIndex') stored,
         txHash      TEXT GENERATED ALWAYS AS (data ->> 'transactionHash') stored,
