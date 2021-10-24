@@ -9,9 +9,6 @@ async function main(blockNumber){
     console.log(logs1155)
 }
 
-provider.getBlockNumber().then(blockNumber => {
+provider.on("block", (blockNumber) => {
     main(blockNumber)
 })
-//provider.on("block", (blockNumber) => {
-//    main(blockNumber)
-//})

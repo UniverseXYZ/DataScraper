@@ -10,7 +10,20 @@ const IFACE_1155 = new ethers.utils.Interface(ERC1155_ABI)
 function devodeEventLogs(method, logs, iface){
     return logs.map(function(l) {
         var log = Object.assign({}, l)
-        log.decodedEvent = iface.decodeEventLog(method, log.data, log.topics)
+        let decodedEvent = iface.decodeEventLog(method, log.data, log.topics)
+        log.type = method
+        log.nftFrom = decodedEvent.from
+        log.nftTo = decodedEvent.to
+        if(method == "TransferSingle") {
+            log.tokenId = parseInt(decodedEvent.id._hex, 16)
+            log.amount = parseInt(decodedEvent.amount._hex, 16)
+        } else if(method=="TransferBatch"){
+            log.tokenId = decodedEvent.ids.map(id => parseInt(id._hex, 16));
+            log.amount =  decodedEvent.amounts.map(amount => parseInt(amount._hex, 16))
+        } else {
+            log.tokenId = parseInt(decodedEvent.tokenId._hex, 16)
+            log.amount = 1
+        }
         return log
     });
 }
