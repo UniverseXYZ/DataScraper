@@ -12,20 +12,37 @@ function devodeEventLogs(method, logs, iface){
         var log = Object.assign({}, l)
         let decodedEvent = iface.decodeEventLog(method, log.data, log.topics)
         log.type = method
-        log.nftFrom = decodedEvent.from
-        log.nftTo = decodedEvent.to
-        if(method == "TransferSingle") {
-            log.tokenId = parseInt(decodedEvent.id._hex, 16)
-            log.amount = parseInt(decodedEvent.amount._hex, 16)
-        } else if(method=="TransferBatch"){
-            log.tokenId = decodedEvent.ids.map(id => parseInt(id._hex, 16));
-            log.amount =  decodedEvent.amounts.map(amount => parseInt(amount._hex, 16))
-        } else {
-            log.tokenId = parseInt(decodedEvent.tokenId._hex, 16)
-            log.amount = 1
+        log.from = decodedEvent.from
+        log.to = decodedEvent.to
+        switch(method) {
+            case "TransferSingle":
+                log.tokenId = parseInt(decodedEvent.id._hex, 16)
+                log.amount = parseInt(decodedEvent.amount._hex, 16)
+                break;
+            case "TransferBatch":
+                log.tokenId = decodedEvent.ids.map(id => parseInt(id._hex, 16));
+                log.amount =  decodedEvent.amounts.map(amount => parseInt(amount._hex, 16))
+                break;
+            case "Transfer":
+                log.tokenId = parseInt(decodedEvent.tokenId._hex, 16)
+                log.amount = 1
+                break;
         }
         return log
     });
+}
+
+function splitBatch1155Logs(logs){
+    ls = []
+    logs.forEach(function(l){
+        for(let i = 0; i < l.tokenId.length; i++){
+            var log = Object.assign({}, l)
+            log.tokenId = log.tokenId[i]
+            log.amount = log.amount[i]
+            ls.push(log)
+        }
+    });
+    return ls
 }
 
 async function get721Transfers(blockNumber){
@@ -42,7 +59,8 @@ async function get721Transfers(blockNumber){
 async function get1155Transfers(blockNumber){
     let singleTransfers = await get1155SingleTransfers(blockNumber)
     let batchTransfers = await get1155BatchTransfers(blockNumber)
-    return singleTransfers.concat(batchTransfers)
+    let logs = singleTransfers.concat(batchTransfers)
+    return logs
 }
 
 async function get1155SingleTransfers(blockNumber){
@@ -58,12 +76,13 @@ async function get1155SingleTransfers(blockNumber){
 
 async function get1155BatchTransfers(blockNumber){
     // TransferBatch(address operator, address from, address to, uint256 id, uint256[] values)
-    logs = await provider.getLogs({
+    let logs = await provider.getLogs({
         "fromBlock": blockNumber,
         "toBlock": blockNumber,
         "topics": [ethers.utils.id("TransferBatch(address,address,address,uint256[],uint256[])")]
     })
     logs = devodeEventLogs("TransferBatch", logs, IFACE_1155)
+    logs = splitBatch1155Logs(logs)
     return logs
 }
 
