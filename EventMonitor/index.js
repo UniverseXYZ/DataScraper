@@ -69,6 +69,10 @@ async function scrape(){
     }
     console.log("Scraping transfers from block %d", fromBlock)
     let transfers = await getAllTransfers(fromBlock)
+    transfers.sort(function(a, b) {
+        return parseFloat(a.blockNumber) - parseFloat(b.blockNumber);
+    });
+    
     if(transfers.length > 0){
         console.log("Found %d transfers", transfers.length)
         await storeTransfers(transfers)
