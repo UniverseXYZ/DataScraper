@@ -62,11 +62,13 @@ async function poll(fn) {
 
 async function scrape(){
     let currentBlockNumber = await provider.getBlockNumber()
+    console.log("Current Block Number: %d", currentBlockNumber)
     let result = await client.query('SELECT block FROM transfers ORDER BY block DESC LIMIT 1;')
     let fromBlock =  currentBlockNumber
     if(result.rows.length){
         fromBlock = result.rows[0].block + 1
     }
+    if (fromBlock > currentBlockNumber){ return }
     console.log("Scraping transfers from block %d", fromBlock)
     let transfers = await getAllTransfers(fromBlock)
     transfers.sort(function(a, b) {
@@ -85,7 +87,7 @@ async function scrape(){
 
 async function main(){
     client = await pool.connect()
-    await initDB(false)
+    await initDB(true)
     poll(scrape)
 }
 
