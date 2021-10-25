@@ -55,7 +55,7 @@ async function get721Transfers(blockNumber){
     // Transfer(address from, address to, uint256 id)
     let logs = (await provider.getLogs({
         "fromBlock": blockNumber,
-        "toBlock": blockNumber,
+        "toBlock": 'latest',
         "topics": [ethers.utils.id("Transfer(address,address,uint256)")]
     })).filter(function(log){ return log.topics.length == 4 })
     logs = devodeEventLogs("Transfer", logs, IFACE_721)
@@ -73,7 +73,7 @@ async function get1155SingleTransfers(blockNumber){
     // TransferSingle(address operator, address from, address to, uint256 id, uint256 value)
     let logs = await provider.getLogs({
         "fromBlock": blockNumber,
-        "toBlock": blockNumber,
+        "toBlock": 'latest',
         "topics": [ethers.utils.id("TransferSingle(address,address,address,uint256,uint256)")]
     })
     logs = devodeEventLogs("TransferSingle", logs, IFACE_1155)
@@ -84,7 +84,7 @@ async function get1155BatchTransfers(blockNumber){
     // TransferBatch(address operator, address from, address to, uint256 id, uint256[] values)
     let logs = await provider.getLogs({
         "fromBlock": blockNumber,
-        "toBlock": blockNumber,
+        "toBlock": 'latest',
         "topics": [ethers.utils.id("TransferBatch(address,address,address,uint256[],uint256[])")]
     })
     logs = devodeEventLogs("TransferBatch", logs, IFACE_1155)

@@ -14,7 +14,6 @@ function App() {
     async function getTransfers() {
       const res = await fetch("http://localhost:3000/transfers");
       const data = await res.json();
-      // store the data into our books variable
       setTransfers(data) ;
     }
     return () => clearInterval(interval);
@@ -37,6 +36,7 @@ function App() {
           <th>TokenId</th>
           <th>Amount</th>
           <th>TxHash</th>
+          <th>Block</th>
           </tr>
       </thead>
       <tbody>
@@ -51,6 +51,7 @@ function App() {
                     <td>{info.tokenid.substring(0,8)}</td>
                     <td>{info.amount.substring(0,8)}</td>
                     <td><a href={"https://etherscan.com/tx/" + info.txhash}>{info.txhash.substring(0,8)}</a></td>
+                    <td>{info.block}</td>
                 </tr>
             )
         }
