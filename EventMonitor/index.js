@@ -1,6 +1,10 @@
 const { provider } = require('./getProvider')
+const { providers } = require('@0xsequence/multicall')
+const { ethers } = require('ethers')
 const { getAllTransfers } = require('./eventScraper')
 const { Pool } = require('pg')
+const r2 = require("r2");
+
 require('dotenv').config()
 
 const connectionString = process.env.DB_URI
@@ -9,6 +13,7 @@ let client
 
 async function initDB(drop=false){
     if(drop) await client.query('DROP TABLE IF EXISTS transfers')
+    if(drop) await client.query('DROP TABLE IF EXISTS nfts')
     await client.query(`
     CREATE TABLE IF NOT EXISTS transfers (
         id SERIAL,
@@ -22,6 +27,18 @@ async function initDB(drop=false){
         txHash      TEXT GENERATED ALWAYS AS (data ->> 'transactionHash') stored,
         block       INTEGER GENERATED ALWAYS AS ((data ->> 'blockNumber')::int) stored,
         PRIMARY     KEY (txHash, logIndex, tokenId)
+    );`
+    )
+    await client.query(`
+    CREATE TABLE IF NOT EXISTS nfts (
+        id SERIAL,
+        data jsonb NOT NULL,
+        metadata jsonb,
+        owner       TEXT GENERATED ALWAYS AS (data ->> 'to') stored,
+        tokenAddr   TEXT GENERATED ALWAYS AS (data ->> 'address') stored,
+        tokenUri    TEXT GENERATED ALWAYS AS (data ->> 'tokenUri') stored,
+        tokenId     varchar(200) GENERATED ALWAYS AS (data ->> 'tokenId') stored,
+        PRIMARY     KEY (tokenAddr, tokenId)
     );`
     )
 }
@@ -45,6 +62,39 @@ async function storeTransfers(transfers){
                 await client.query('INSERT INTO transfers (data) VALUES ($1) ON CONFLICT DO NOTHING;', [JSON.stringify(t)])
             }
         } catch (e) { console.log ( "error: ", t, e )}
+    }
+}
+
+
+async function extractMetadata(transfers){
+    console.log("%d transfers to extract", transfers.length)
+    const mcProvider = new providers.MulticallProvider(provider)
+    const abi = [
+        "function tokenURI(uint256) view returns (string)",
+        "function uri(uint256) view returns (string)",
+    ]    
+
+    tokenURICalls = []
+    for( let i = 0; i < transfers.length; i++){
+        t = transfers[i]
+        const contract = new ethers.Contract(t.address, abi, mcProvider)
+        if(t.type == "Transfer"){
+            tokenURICalls.push(contract.tokenURI(t.tokenId))
+        } else {
+            tokenURICalls.push(contract.uri(t.tokenId))
+        }
+    }
+    let results = await Promise.all(tokenURICalls.map(p => p.catch(e => e)));
+    results = results.
+        map((result) => !(result instanceof Error) ? result : "");
+    for (let i = 0; i < results.length; i++){
+        r = results[i]
+        let protocol = r.split(':')
+        console.log(protocol[0])
+        if(protocol[0] == "https"){
+            let md = await r2(r).json;
+            console.log(md)
+        }
     }
 }
 
@@ -76,11 +126,16 @@ async function scrape(){
     });
     
     if(transfers.length > 0){
-        console.log("Found %d transfers", transfers.length)
+        console.log("Found %d transfers. Storing...", transfers.length)
         await storeTransfers(transfers)
+        console.log("Storing complete. Extracting Metadata...")
+        await extractMetadata(transfers)
     } else {
         console.log("No transfers found on block: %d", fromBlock)
     }
+
+    
+
     result = await client.query('SELECT * FROM transfers;')
     console.log("%d rows in table transfers", result.rows.length)
 }
