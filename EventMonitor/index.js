@@ -62,7 +62,7 @@ async function poll(fn) {
 
 async function scrape(){
     let currentBlockNumber = await provider.getBlockNumber()
-    let result = await client.query('SELECT * FROM transfers ORDER BY block DESC;')
+    let result = await client.query('SELECT block FROM transfers ORDER BY block DESC LIMIT 1;')
     let fromBlock =  currentBlockNumber
     if(result.rows.length){
         fromBlock = result.rows[0].block + 1
