@@ -20,6 +20,7 @@ async function initDB(drop=false){
         amount      TEXT GENERATED ALWAYS AS (data ->> 'amount') stored,
         logIndex    TEXT GENERATED ALWAYS AS (data ->> 'logIndex') stored,
         txHash      TEXT GENERATED ALWAYS AS (data ->> 'transactionHash') stored,
+        block       INTEGER GENERATED ALWAYS AS ((data ->> 'blockNumber')::int) stored,
         PRIMARY     KEY (txHash, logIndex, tokenId)
     );`
     )
@@ -34,37 +35,54 @@ async function storeTransfers(transfers){
         delete t.removed;  
         delete t.blockHash;
         try{
-            await client.query('INSERT INTO transfers (data) VALUES ($1);', [JSON.stringify(t)])
-        } catch (e) {}
+            const transfers = await pool.query("SELECT * FROM transfers WHERE txHash = $1 AND logIndex = $2 AND tokenId = $3", [
+                t.transactionHash, t.logIndex, t.tokenId
+              ]);
+            if (transfers.rows.length > 0){
+                console.log(transfers.rows)
+                console.log("Duplicate found!")
+            } else {
+                await client.query('INSERT INTO transfers (data) VALUES ($1) ON CONFLICT DO NOTHING;', [JSON.stringify(t)])
+            }
+        } catch (e) { console.log ( "error: ", t, e )}
     }
 }
 
-async function scrape(blockNumber){
-    blockNumber = blockNumber - 6
-    console.log("Block: %d", blockNumber)
-    transfers = await getAllTransfers(blockNumber)
+const timeout = 30;  
+function sleep(milliseconds) {  
+    return  new  Promise(resolve => 
+        setTimeout(resolve, milliseconds)
+    );  
+}  
+async function poll(fn) {  
+    await fn();  
+    await sleep(timeout*1000);  
+    await poll(fn);  
+}
+
+async function scrape(){
+    let currentBlockNumber = await provider.getBlockNumber()
+    let result = await client.query('SELECT * FROM transfers ORDER BY block DESC;')
+    let fromBlock =  currentBlockNumber
+    if(result.rows.length){
+        fromBlock = result.rows[0].block + 1
+    }
+    console.log("Scraping transfers from block %d", fromBlock)
+    let transfers = await getAllTransfers(fromBlock)
     if(transfers.length > 0){
         console.log("Found %d transfers", transfers.length)
-        //console.log("Preview: ", transfers[0])
         await storeTransfers(transfers)
     } else {
-        console.log("No transfers found on block: %d", blockNumber)
+        console.log("No transfers found on block: %d", fromBlock)
     }
-    let result = await client.query('SELECT * FROM transfers;')
-    console.log("%d rows in transfers", result.rows.length)
-    //console.log(result.rows[result.rows.length-1])
+    result = await client.query('SELECT * FROM transfers;')
+    console.log("%d rows in table transfers", result.rows.length)
 }
-/*
-provider.getBlockNumber().then(blockNumber => {
-    main(blockNumber)
-})
-*/
+
 async function main(){
     client = await pool.connect()
     await initDB(false)
-    provider.on("block", (blockNumber) => {
-        scrape(blockNumber)
-    })    
+    poll(scrape)
 }
 
 main()
